@@ -1,0 +1,128 @@
+// get date
+dateStamp = zoho.currentdate;
+yyyy = dateStamp.getYear();
+mm = dateStamp.getMonth();
+dd = dateStamp.getDay();
+//
+// get time
+timeStamp = zoho.currenttime;
+hour = timeStamp.getHour();
+minute = timeStamp.getMinutes();
+seconds = timeStamp.getSeconds();
+// date stuff to format
+datestuffs = {yyyy,mm,dd,hour,minute,seconds};
+// record middle name
+middlename = "ZR_";
+// if the hour is less than 10, it will report 0 with a single digit, no good.
+// this makes the formatting uniform: 00
+position = 0;
+for each  datestuff in datestuffs
+{
+	if(position == 0)
+	{
+		middlename = concat(middlename,datestuff.toString());
+		position = position + 1;
+	}
+	else
+	{
+		if(datestuff < 10)
+		{
+			datestuff = "0" + datestuff.toString();
+			middlename = concat(middlename,datestuff);
+			position = position + 1;
+		}
+		else
+		{
+			datestuff = datestuff.toString();
+			middlename = concat(middlename,datestuff);
+			position = position + 1;
+		}
+	}
+}
+// Script logic starts sHistoryTwo
+duckling = zoho.recruit.getRecordById("Candidates",id_duckling);
+//
+//
+recordName = middlename + "_SHR";
+//
+// GET INFORMATION FOR sHistory DATA SET
+//
+// get candidate id, which is the duckling's record name
+id_candidate_text = duckling.get("Candidate ID");
+// get the candidate status (ie matchmaking status)
+status = "New";
+// get Country
+country = duckling.get("Country Based");
+//get Job Type
+job_type = duckling.get("Job Type");
+//get Source
+source = duckling.get("Source");
+//get blueprintLegVersinoNumber
+blueprintLegVersionNumber = duckling.get("blueprintLegVersionNumber");
+//get timeStamp
+priorStatusTimestamp = zoho.currenttime;
+//
+scriptExecutionTime = timeStamp;
+//
+//get the prior status of the duckling 
+hardCodedDucklingPriorStatus = duckling.get("priorStatus");
+//
+sHistoryOld = duckling.get("sHistoryRecordId");
+//
+sHistoryOldPriorStatus = duckling.get("sHistoryOldPriorStatus");
+//
+expectedPriorStatus = duckling.get("expectedPriorStatus");
+//
+// CONSTRUCT SCREENING DATA SET
+//
+// create a map record for screening
+screening_record = Map();
+// map duckling fields to screening_record
+screening_record.put("sHistoryRecord",recordName);
+screening_record.put("CANDIDATEID",id_duckling);
+screening_record.put("Candidate ID",id_candidate_text);
+screening_record.put("Status",status);
+screening_record.put("Country Based",country);
+screening_record.put("Job Type",job_type);
+screening_record.put("Source",source);
+screening_record.put("blueprintLegVersionNumber",blueprintLegVersionNumber);
+screening_record.put("priorStatusTimestamp",priorStatusTimestamp);
+screening_record.put("scriptExecutionTime",scriptExecutionTime);
+screening_record.put("priorStatus",hardCodedDucklingPriorStatus);
+//
+//
+// CREATE sHistory RECORD
+record = zoho.recruit.addRecord("CustomModule4",screening_record);
+info record;
+//Get the sHistoryRecordId that is genarated when a record is created.
+shistory_Record_Id = Map();
+//add the sHistoryRecordId into the record
+shistory_Record_Id.put("sHistoryRecordId",record.get("Id"));
+//This is part of the code is for giving conditional logic dependent on the value in the "if" statement
+if(sHistoryOldPriorStatus != "")
+{
+	errorLog = Map();
+	errorLog.put("Duckling ID",id_duckling);
+	errorLog.put("sHistoryRecordId",record.get("Id"));
+	errorLog.put("expectedPriorStatus",hardCodedDucklingPriorStatus);
+	errorLog.put("hardCodedDucklingPriorStatus",expectedPriorStatus);
+	errorLog.put("sHistoryRecordStatus",status);
+	errorLog.put("blueprintLegVersionNumber",blueprintLegVersionNumber);
+	//
+	//Create ErrorLogRecord in the ErrorLogRecord
+	errorLogRecord = zoho.recruit.addRecord("CustomModule5",errorLog);
+	info errorLogRecord;
+}
+//This part of the script is to update the record
+sHistoryForDucklingPriorStatusNew = hardCodedDucklingPriorStatus;
+//
+sHistoryRecordId = record.get("id");
+//
+leftStageDate = zoho.currentdate;
+//
+// Create a map for the updated record
+updateDuckling = Map();
+updateDuckling.put(sHistoryRecordId,"sHistoryRecordIdNew");
+updateDuckling.put(sHistoryOldPriorStatus,"sHistoryForDucklingPriorStatusNew");
+updateDuckling.put(leftStageDate,zoho.currentdate);
+updateTheDuckling = zoho.recruit.updateRecord("Candidates",id_duckling,updateDuckling);
